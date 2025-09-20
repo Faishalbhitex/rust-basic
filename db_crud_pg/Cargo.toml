@@ -1,0 +1,15 @@
+[package]
+name = "db_crud_pg"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+tokio = { version = "1", features = ["full"] }
+sqlx = { version = "0.7", features = ["runtime-tokio-rustls", "postgres", "uuid", "chrono", "rust_decimal", "migrate"] }
+dotenv = "0.15"
+rust_decimal = "1.0"
+chrono = "0.4.42"
+
+[[bin]]
+name = "pg_cli"
+path = "src/main.rs"
