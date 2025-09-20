@@ -21,11 +21,28 @@ A CLI-based CRUD (Create, Read, Update, Delete) application built with Rust and 
 
 ### 1. Clone Repository
 ```bash
-git clone <your-repository-url>
-cd db_crud_pg
+git clone https://github.com/Faishalbhitex/rust-basic.git
+cd rust-basic/db_crud_pg
 ```
 
-### 2. Setup Environment
+### 2. PostgreSQL Setup (First Time Only)
+
+If you don't have PostgreSQL set up yet:
+
+```bash
+# Create PostgreSQL data directory
+mkdir -p $HOME/pg-data
+
+# Initialize PostgreSQL database cluster
+initdb -D $HOME/pg-data -U admin
+
+# Start PostgreSQL server
+pg_ctl -D $HOME/pg-data start
+
+# The server will create logs in your directory
+```
+
+### 3. Setup Environment
 ```bash
 # Copy environment template
 cp .env.example .env
@@ -34,25 +51,25 @@ cp .env.example .env
 nano .env  # or vim .env
 ```
 
-### 3. Configure Database Connection
+### 4. Configure Database Connection
 Update `.env` file with your PostgreSQL settings:
 ```env
-DATABASE_URL="postgresql://username:password@localhost:5432/crud_db"
+DATABASE_URL="postgresql://admin:your_password@localhost:5432/crud_db"
 ```
 
-Example for default setup:
+Example configuration:
 ```env
 DATABASE_URL="postgresql://admin:admin123@localhost:5432/crud_db"
 ```
 
-### 4. Run Application
+### 5. Run Application
 ```bash
 # Build and run (auto-migration will handle database setup)
 cargo run --release --bin pg_cli
 ```
 
 The application will automatically:
-- Create the database if it doesn't exist
+- Create the database `crud_db` if it doesn't exist
 - Run migrations to create the `users` table
 - Insert sample data for immediate testing
 - Launch the interactive CLI
@@ -86,29 +103,42 @@ The application comes pre-loaded with 12 sample users:
 - Faishal (24, 161.00cm)
 - Fahmi (16, 169.00cm)
 - Farham (23, 165.00cm)
-- And 9 more...
+- Nasrul (23, 170.00cm)
+- Andi (27, 178.00cm)
+- Ahmad Saputra (27, 170.00cm)
+- Andrean (27, 182.00cm)
+- Fadhil (24, 161.00cm)
+- Jamal (30, 160.00cm)
+- Taufik (24, 165.00cm)
+- Ilham (25, 160.00cm)
+- Firman (24, 165.00cm)
 
-## Manual Database Setup (Optional)
+## Manual Database Setup (Alternative)
 
 If you prefer manual database setup or face issues with auto-migration:
 
-### PostgreSQL Setup
+### PostgreSQL Management
 ```bash
-# Start PostgreSQL server
-pg_ctl -D pg-data start
+# Check PostgreSQL status
+pg_ctl -D $HOME/pg-data status
 
-# Create database manually
-createdb -U your_username crud_db
+# Start PostgreSQL server
+pg_ctl -D $HOME/pg-data start
+
+# Stop PostgreSQL server
+pg_ctl -D $HOME/pg-data stop
 
 # Connect to database
-psql -U your_username -d crud_db
+psql -U admin -d crud_db -h localhost
 ```
 
 ### Manual Migration
 ```bash
-# Run migrations manually using SQLx CLI
+# Install SQLx CLI (if not already installed)
 cargo install sqlx-cli
-sqlx migrate run --database-url "your_database_url"
+
+# Run migrations manually
+sqlx migrate run --database-url "postgresql://admin:password@localhost:5432/crud_db"
 ```
 
 ## Project Structure
@@ -190,42 +220,32 @@ The application handles common errors gracefully:
 - **Missing records**: Informative "not found" responses
 - **Type conversion errors**: Helpful format guidance
 
-## Testing
+## Testing Auto-Migration
 
-### Test Auto-Migration
 To verify the auto-migration feature works correctly:
 
 ```bash
 # 1. Stop PostgreSQL
-pg_ctl -D pg-data stop
+pg_ctl -D $HOME/pg-data stop
 
 # 2. Backup existing database
-mv pg-data pg-data-backup
+mv $HOME/pg-data $HOME/pg-data-backup
 
 # 3. Initialize fresh database
-initdb -D pg-data -U admin
+initdb -D $HOME/pg-data -U admin
 
 # 4. Start PostgreSQL
-pg_ctl -D pg-data start
+pg_ctl -D $HOME/pg-data start
 
 # 5. Run application (should auto-create everything)
 cargo run --release --bin pg_cli
 
-# 6. Restore original database
-pg_ctl -D pg-data stop
-rm -rf pg-data
-mv pg-data-backup pg-data
-pg_ctl -D pg-data start
+# 6. Restore original database (optional)
+pg_ctl -D $HOME/pg-data stop
+rm -rf $HOME/pg-data
+mv $HOME/pg-data-backup $HOME/pg-data
+pg_ctl -D $HOME/pg-data start
 ```
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature-name`
-3. Make your changes and test thoroughly
-4. Commit changes: `git commit -m "Add feature description"`
-5. Push to branch: `git push origin feature-name`
-6. Submit a Pull Request
 
 ## Troubleshooting
 
@@ -234,19 +254,26 @@ pg_ctl -D pg-data start
 **Database Connection Refused**
 ```bash
 # Check if PostgreSQL is running
-pg_ctl -D pg-data status
+pg_ctl -D $HOME/pg-data status
 
 # Start PostgreSQL if not running
-pg_ctl -D pg-data start
+pg_ctl -D $HOME/pg-data start
+```
+
+**PostgreSQL Not Initialized**
+```bash
+# Initialize PostgreSQL data directory
+initdb -D $HOME/pg-data -U admin
+pg_ctl -D $HOME/pg-data start
 ```
 
 **Migration Fails**
 ```bash
 # Check database exists and is accessible
-psql -U username -d crud_db -c "SELECT version();"
+psql -U admin -d crud_db -c "SELECT version();"
 
 # Manually run migrations
-sqlx migrate run --database-url "your_database_url"
+sqlx migrate run --database-url "postgresql://admin:password@localhost:5432/crud_db"
 ```
 
 **Build Errors**
@@ -255,6 +282,23 @@ sqlx migrate run --database-url "your_database_url"
 cargo clean
 cargo build --release
 ```
+
+**Permission Issues**
+- Ensure the user specified in DATABASE_URL has appropriate permissions
+- Check that PostgreSQL is configured to accept local connections
+
+## About This Project
+
+This project is part of a monorepo collection of Rust learning projects. It demonstrates:
+- Database operations with SQLx
+- Async programming in Rust
+- CLI application development
+- Database migrations and auto-setup
+- Error handling and user input validation
+
+## Repository Context
+
+This project is located within the [rust-basic](https://github.com/Faishalbhitex/rust-basic) repository, which contains various Rust learning projects and examples.
 
 ## License
 
